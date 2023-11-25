@@ -33,6 +33,7 @@ using namespace std;
 #include "Temporizador.h"
 #include "ListaDeCoresRGB.h"
 #include "Ponto.h"
+#include "TextureClass.h"
 Temporizador T;
 double AccumDeltaT=0;
 
@@ -54,7 +55,10 @@ int ModoDeExibicao = 1;
 
 double nFrames=0;
 double TempoTotal=0;
-Ponto CantoEsquerdo = {-20,-1,-10};
+Ponto CantoEsquerdo (-20,-1,-10);
+
+GLuint Tex[2];
+
 // **********************************************************************
 //  void init(void)
 //        Inicializa os parametros globais de OpenGL
@@ -66,10 +70,16 @@ void init(void)
     glClearDepth(1.0);
     glDepthFunc(GL_LESS);
     glEnable(GL_DEPTH_TEST);
-    glEnable (GL_CULL_FACE );
+    glEnable(GL_CULL_FACE );
     glEnable(GL_NORMALIZE);
+    glEnable(GL_TEXTURE_2D);
     glShadeModel(GL_SMOOTH);
     //glShadeModel(GL_FLAT);
+
+    Tex[0] = LoadTexture("parede-i.jpg");
+    Tex[1] = LoadTexture("grama.jpg");
+
+    glDisable(GL_TEXTURE_2D);
 
     glColorMaterial ( GL_FRONT, GL_AMBIENT_AND_DIFFUSE );
     if (ModoDeExibicao) // Faces Preenchidas??
@@ -168,29 +178,38 @@ void DesenhaParalelepipedo()
 // Eh possivel definir a cor da borda e do interior do piso
 // O ladrilho tem largula 1, centro no (0,0,0) e est‡ sobre o plano XZ
 // **********************************************************************
-void DesenhaLadrilho(int corBorda, int corDentro)
+void DesenhaLadrilho(int corBorda, int idTextura, Ponto inicioTextura, Ponto finalTextura, bool ativaBorda)
 {
     //defineCor(corDentro);// desenha QUAD preenchido
+    glEnable(GL_TEXTURE_2D);
     glColor3f(1,1,1);
+    glBindTexture(GL_TEXTURE_2D, Tex[idTextura]);
+
     glBegin ( GL_QUADS );
         glNormal3f(0,1,0);
+        glTexCoord2d(inicioTextura.x, inicioTextura.z);
         glVertex3f(-0.5f,  0.0f, -0.5f);
+        glTexCoord2d(inicioTextura.x, finalTextura.z);
         glVertex3f(-0.5f,  0.0f,  0.5f);
+        glTexCoord2d(finalTextura.x, finalTextura.z);
         glVertex3f( 0.5f,  0.0f,  0.5f);
+        glTexCoord2d(finalTextura.x, inicioTextura.z);
         glVertex3f( 0.5f,  0.0f, -0.5f);
     glEnd();
+    glDisable(GL_TEXTURE_2D);
 
     //defineCor(corBorda);
     glColor3f(0,1,0);
 
-    glBegin ( GL_LINE_STRIP );
+    if (ativaBorda) {
+        glBegin ( GL_LINE_STRIP );
         glNormal3f(0,1,0);
         glVertex3f(-0.5f,  0.0f, -0.5f);
         glVertex3f(-0.5f,  0.0f,  0.5f);
         glVertex3f( 0.5f,  0.0f,  0.5f);
         glVertex3f( 0.5f,  0.0f, -0.5f);
     glEnd();
-
+    }
 
 }
 
@@ -203,17 +222,43 @@ void DesenhaPiso()
     srand(100); // usa uma semente fixa para gerar sempre as mesma cores no piso
     glPushMatrix();
     glTranslated(CantoEsquerdo.x, CantoEsquerdo.y, CantoEsquerdo.z);
-    for(int x=-20; x<20;x++)
+    float proporcaoX = 1.0f / 51.0f;
+    float proporcaoZ = 1.0f / 26.0f;
+
+    for(int x=0; x<50;x++)
     {
         glPushMatrix();
-        for(int z=-20; z<20;z++)
+        for(int z=0; z<25;z++)
         {
-            DesenhaLadrilho(MediumGoldenrod, rand()%40);
+            DesenhaLadrilho(MediumGoldenrod, 1, Ponto(x * proporcaoX, 0, z * proporcaoZ), Ponto((x + 1) * proporcaoX, 0, (z + 1) * proporcaoZ), false);
             glTranslated(0, 0, 1);
         }
         glPopMatrix();
         glTranslated(1, 0, 0);
     }
+    glPopMatrix();
+}
+
+void DesenhaParede()
+{
+    glPushMatrix();
+    glTranslated(CantoEsquerdo.x + 25, CantoEsquerdo.y, CantoEsquerdo.z);
+    glRotated(90, 0, 0, 1);
+    float proporcaoX = 1.0f / 16.0f;
+    float proporcaoZ = 1.0f / 26.0f;
+
+    for(int x=0; x<15;x++)
+    {
+        glPushMatrix();
+        for(int z=0; z<25;z++)
+        {
+            DesenhaLadrilho(MediumGoldenrod, 0, Ponto(x * proporcaoX, 0, z * proporcaoZ), Ponto((x + 1) * proporcaoX, 0, (z + 1) * proporcaoZ), false);
+            glTranslated(0, 0, 1);
+        }
+        glPopMatrix();
+        glTranslated(1, 0, 0);
+    }
+
     glPopMatrix();
 }
 // **********************************************************************
@@ -291,7 +336,7 @@ void PosicUser()
 
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    gluLookAt(0, 0, 10,   // Posi‹o do Observador
+    gluLookAt(-15, 10, 15,   // Posi‹o do Observador
               0,0,0,     // Posi‹o do Alvo
               0.0f,1.0f,0.0f);
 
@@ -352,6 +397,7 @@ void display( void )
 	glPopMatrix();
 
     DesenhaPiso();
+    DesenhaParede();
 
 	glutSwapBuffers();
 }
