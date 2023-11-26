@@ -56,8 +56,15 @@ int ModoDeExibicao = 1;
 double nFrames=0;
 double TempoTotal=0;
 Ponto CantoEsquerdo (-20,-1,-10);
+int cam = 1;
 
 GLuint Tex[2];
+
+float rotBase = 0.0f;
+float rotBraco = 45.0f;
+
+float posBaseX = -5.0f;
+float posBaseZ = 10.0f;
 
 // **********************************************************************
 //  void init(void)
@@ -261,6 +268,26 @@ void DesenhaParede()
 
     glPopMatrix();
 }
+
+void DesenhaVeiculo()
+{
+    glPushMatrix();
+        glTranslatef(posBaseX, -0.5f, posBaseZ); // Pos VeÌculo
+        glRotatef(rotBase, 0, 1, 0);
+        glPushMatrix();
+            glColor3f(0.0f, 1.0f, 1.0f);
+            glScalef(3.0f, 1.0f, 2.0f);
+            glutSolidCube(1);
+        glPopMatrix();
+        glPushMatrix();
+            glTranslatef(1.0f, 0.0f, 0.0f);
+            glRotatef(rotBraco, 0, 0, -1);
+            glScalef(0.5f, 2.5f, 0.5f);
+            glColor3f(1.0f, 0.64f, 0.0f);
+            glutSolidCube(1);
+        glPopMatrix();
+    glPopMatrix();
+}
 // **********************************************************************
 //  void DefineLuz(void)
 // **********************************************************************
@@ -336,9 +363,26 @@ void PosicUser()
 
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    gluLookAt(-15, 10, 15,   // Posição do Observador
-              0,0,0,     // Posição do Alvo
-              0.0f,1.0f,0.0f);
+
+    switch (cam) {
+        case 2:
+            gluLookAt(-10, 20, 10,   // Posição do Observador
+                      -9.5f, 0, 10,     // Posição do Alvo
+                      0, 0, 1);
+            break;
+        case 3:
+            gluLookAt(-2, 5, 15,   // Posição do Observador
+                      -5, 0, 0,     // Posição do Alvo
+                      0.0f,1.0f,0.0f);
+            break;
+
+        default:
+            gluLookAt(-15, 10, 15,   // Posição do Observador
+                  0,0,0,     // Posição do Alvo
+                  0.0f,1.0f,0.0f);
+            break;
+    }
+
 
 }
 // **********************************************************************
@@ -378,26 +422,9 @@ void display( void )
 
 	PosicUser();
 
-	glMatrixMode(GL_MODELVIEW);
-
-	glPushMatrix();
-		glTranslatef ( 5.0f, 0.0f, 3.0f );
-        glRotatef(angulo,0,1,0);
-		glColor3f(0.5f,0.0f,0.0f); // Vermelho
-        glutSolidCube(2);
-        //DesenhaCubo(1);
-	glPopMatrix();
-
-	glPushMatrix();
-		glTranslatef ( -4.0f, 0.0f, 2.0f );
-		glRotatef(angulo,0,1,0);
-		glColor3f(0.6156862745, 0.8980392157, 0.9803921569); // Azul claro
-        glutSolidCube(2);
-		//DesenhaCubo(1);
-	glPopMatrix();
-
     DesenhaPiso();
     DesenhaParede();
+    DesenhaVeiculo();
 
 	glutSwapBuffers();
 }
@@ -415,6 +442,31 @@ void keyboard ( unsigned char key, int x, int y )
     case 27:        // Termina o programa qdo
       exit ( 0 );   // a tecla ESC for pressionada
       break;
+    case '1':
+        cam = 1;
+        break;
+    case '2':
+        cam = 2;
+        break;
+    case '3':
+        cam = 3;
+        break;
+    case 'w':
+        posBaseX += cos(rotBase * 0.017453f) * 0.15f;
+        posBaseZ -= sin(rotBase * 0.017453f) * 0.15f;
+        cout << "Rot: " << rotBase << " | Cos: " << cos(rotBase * 0.017453f) << " | Sin: " << sin(rotBase * 0.017453f) << endl;
+        break;
+    case 's':
+        posBaseX -= cos(rotBase * 0.017453f) * 0.15f;
+        posBaseZ += sin(rotBase * 0.017453f) * 0.15f;
+        break;
+    case 'a':
+        rotBase += 3.0f;
+        cout << "Rot: " << rotBase << " | Cos: " << cos(rotBase * 0.017453f) << " | Sin: " << sin(rotBase * 0.017453f) << endl;
+        break;
+    case 'd':
+        rotBase -= 3.0f;
+        break;
     case 'p':
             ModoDeProjecao = !ModoDeProjecao;
             glutPostRedisplay();
@@ -439,11 +491,17 @@ void arrow_keys ( int a_keys, int x, int y )
 {
 	switch ( a_keys )
 	{
-		case GLUT_KEY_UP:       // When Up Arrow Is Pressed...
-			glutFullScreen ( ); // Go Into Full Screen Mode
+		case GLUT_KEY_UP:
+		    if (rotBraco + 3.0f >= 90.0f)
+                rotBraco = 90.0f;
+            else
+                rotBraco += 3.0f;
 			break;
-	    case GLUT_KEY_DOWN:     // When Down Arrow Is Pressed...
-			glutInitWindowSize  ( 700, 500 );
+	    case GLUT_KEY_DOWN:
+            if (rotBraco - 3.0f <= 0.0f)
+                rotBraco = 0.0f;
+            else
+                rotBraco -= 3.0f;
 			break;
 		default:
 			break;
