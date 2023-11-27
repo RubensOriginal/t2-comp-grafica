@@ -390,10 +390,11 @@
 	<windows.h>
 	<sys/time.h>
 
-1700960737 source:c:\users\gamep\desktop\my_github_projects\t2-comp-grafica\programabasico3d.cpp
+1701049825 source:c:\users\gamep\desktop\my_github_projects\t2-comp-grafica\programabasico3d.cpp
 	<iostream>
 	<cmath>
 	<ctime>
+	<vector>
 	<windows.h>
 	<glut.h>
 	<sys/time.h>
@@ -403,6 +404,7 @@
 	"ListaDeCoresRGB.h"
 	"Ponto.h"
 	"TextureClass.h"
+	"BezierTiro.h"
 
 1700945715 source:c:\users\gamep\desktop\my_github_projects\t2-comp-grafica\imageclass.cpp
 	<stdio.h>
@@ -494,4 +496,10 @@
 	<stdarg.h>
 	"stbi_DDS_aug.h"
 	"stbi_DDS_aug_c.h"
+
+1700968603 source:c:\users\gamep\desktop\my_github_projects\t2-comp-grafica\beziertiro.cpp
+	"BezierTiro.h"
+
+1700968347 c:\users\gamep\desktop\my_github_projects\t2-comp-grafica\beziertiro.h
+	"Ponto.h"
 

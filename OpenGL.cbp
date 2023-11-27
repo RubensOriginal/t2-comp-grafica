@@ -17,6 +17,7 @@
 					<Add option="-g" />
 					<Add directory="include" />
 					<Add directory="GL" />
+					<Add directory="../t2-comp-grafica" />
 				</Compiler>
 				<Linker>
 					<Add library="GL" />
@@ -43,6 +44,7 @@
 					<Add option="-Wno-unused-but-set-variable" />
 					<Add option="-DFREEGLUT_STATIC" />
 					<Add directory="GL" />
+					<Add directory="../t2-comp-grafica" />
 				</Compiler>
 				<Linker>
 					<Add library="libFreeGLUT.a" />
@@ -61,6 +63,10 @@
 			<Add option="-Wno-narrowing" />
 			<Add option="-Wno-deprecated-declarations" />
 		</Compiler>
+		<Unit filename="BezierTiro.cpp" />
+		<Unit filename="BezierTiro.h" />
+		<Unit filename="ImageClass.cpp" />
+		<Unit filename="ImageClass.h" />
 		<Unit filename="Linha.cpp" />
 		<Unit filename="Linha.h" />
 		<Unit filename="ListaDeCoresRGB.cpp" />
@@ -70,8 +76,23 @@
 		<Unit filename="Ponto.cpp" />
 		<Unit filename="Ponto.h" />
 		<Unit filename="ProgramaBasico3D.cpp" />
+		<Unit filename="SOIL/SOIL.cpp" />
+		<Unit filename="SOIL/SOIL.h" />
+		<Unit filename="SOIL/image_DXT.cpp" />
+		<Unit filename="SOIL/image_DXT.h" />
+		<Unit filename="SOIL/image_helper.cpp" />
+		<Unit filename="SOIL/image_helper.h" />
+		<Unit filename="SOIL/stb_image_aug.cpp" />
+		<Unit filename="SOIL/stb_image_aug.h" />
+		<Unit filename="SOIL/stbi_DDS_aug.h" />
 		<Unit filename="Temporizador.cpp" />
 		<Unit filename="Temporizador.h" />
-		<Extensions />
+		<Unit filename="TextureClass.cpp" />
+		<Unit filename="TextureClass.h" />
+		<Extensions>
+			<code_completion />
+			<envvars />
+			<debugger />
+		</Extensions>
 	</Project>
 </CodeBlocks_project_file>

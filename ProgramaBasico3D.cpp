@@ -11,6 +11,7 @@
 #include <iostream>
 #include <cmath>
 #include <ctime>
+#include <vector>
 
 using namespace std;
 
@@ -34,6 +35,7 @@ using namespace std;
 #include "ListaDeCoresRGB.h"
 #include "Ponto.h"
 #include "TextureClass.h"
+#include "BezierTiro.h"
 Temporizador T;
 double AccumDeltaT=0;
 
@@ -62,9 +64,19 @@ GLuint Tex[2];
 
 float rotBase = 0.0f;
 float rotBraco = 45.0f;
+Ponto pontoBraco (0, 0, 0);
 
 float posBaseX = -5.0f;
 float posBaseZ = 10.0f;
+
+float forca = 10.0f;
+
+vector<Ponto> pontosTiros;
+
+vector<BezierTiro*> tiros;
+
+bool testTiro = false;
+
 
 // **********************************************************************
 //  void init(void)
@@ -281,13 +293,61 @@ void DesenhaVeiculo()
         glPopMatrix();
         glPushMatrix();
             glTranslatef(1.0f, 0.0f, 0.0f);
-            glRotatef(rotBraco, 0, 0, -1);
+            glRotatef(rotBraco - 90.0f, 0, 0, 1);
             glScalef(0.5f, 2.5f, 0.5f);
             glColor3f(1.0f, 0.64f, 0.0f);
             glutSolidCube(1);
         glPopMatrix();
     glPopMatrix();
 }
+
+void DesenhaTiro(Ponto ponto)
+{
+    glPushMatrix();
+        glTranslatef(ponto.x, ponto.y, ponto.z);
+        glColor3f(1.0f, 1.0f, 1.0f);
+        glutSolidSphere(0.3, 10, 10);
+    glPopMatrix();
+}
+
+void Atira()
+{
+    Ponto DirecaoDoCanhao = Ponto(1,0,0);
+    DirecaoDoCanhao.rotacionaZ(rotBraco);
+    DirecaoDoCanhao.rotacionaY(rotBase);
+
+    Ponto PosicaoDoCanhao = Ponto(posBaseX, 0.5f, posBaseZ) + Ponto (1.5f, 0.0f, 0.0f);
+
+    Ponto B = PosicaoDoCanhao + (DirecaoDoCanhao * forca);
+
+    float Distancia = 2 * forca * cos(rotBraco * 3.14 / 180);
+
+    Ponto tempC = Ponto (Distancia, 0.0f, 0.0f);
+    tempC.rotacionaY(rotBase);
+
+    Ponto C = PosicaoDoCanhao + tempC;
+
+
+
+    C.imprime();
+    cout << "Rot Canhao: " << rotBraco << " | Rot Veiculo: " << rotBase << " | FIRE!!!" << endl;
+
+    if (testTiro)
+    {
+        pontosTiros.push_back(PosicaoDoCanhao);
+        pontosTiros.push_back(B);
+        pontosTiros.push_back(C);
+    }
+    else
+    {
+        BezierTiro* tiro = new BezierTiro(PosicaoDoCanhao, B, C);
+
+        tiros.push_back(tiro);
+    }
+
+}
+
+
 // **********************************************************************
 //  void DefineLuz(void)
 // **********************************************************************
@@ -426,6 +486,45 @@ void display( void )
     DesenhaParede();
     DesenhaVeiculo();
 
+
+    if (testTiro)
+    {
+        for (int i = 0; i < pontosTiros.size(); i += 3) {
+            Ponto a = pontosTiros[i];
+            Ponto b = pontosTiros[i + 1];
+            Ponto c = pontosTiros[i + 2];
+
+            DesenhaTiro(a);
+            DesenhaTiro(b);
+            DesenhaTiro(c);
+
+            glBegin ( GL_LINE_STRIP );
+                glNormal3f(0,1,0);
+                glVertex3f(a.x,  a.y, a.z);
+                glVertex3f(b.x,  b.y, b.z);
+                glVertex3f(c.x,  c.y, c.z);
+            glEnd();
+
+        }
+    }
+    else
+    {
+        for (int i = 0; i < tiros.size(); i++) {
+        BezierTiro* tiro = tiros[i];
+        if (tiro->isValido())
+        {
+            DesenhaTiro(tiro->proxPonto(0.05f));
+        }
+        else
+        {
+            tiros.erase(tiros.begin()+i);
+            delete tiro;
+        }
+
+    }
+    }
+
+
 	glutSwapBuffers();
 }
 
@@ -454,7 +553,6 @@ void keyboard ( unsigned char key, int x, int y )
     case 'w':
         posBaseX += cos(rotBase * 0.017453f) * 0.15f;
         posBaseZ -= sin(rotBase * 0.017453f) * 0.15f;
-        cout << "Rot: " << rotBase << " | Cos: " << cos(rotBase * 0.017453f) << " | Sin: " << sin(rotBase * 0.017453f) << endl;
         break;
     case 's':
         posBaseX -= cos(rotBase * 0.017453f) * 0.15f;
@@ -462,10 +560,18 @@ void keyboard ( unsigned char key, int x, int y )
         break;
     case 'a':
         rotBase += 3.0f;
-        cout << "Rot: " << rotBase << " | Cos: " << cos(rotBase * 0.017453f) << " | Sin: " << sin(rotBase * 0.017453f) << endl;
         break;
     case 'd':
         rotBase -= 3.0f;
+        break;
+    case ' ':
+        Atira();
+        break;
+    case 'c':
+        while (!pontosTiros.empty())
+        {
+                pontosTiros.pop_back();
+        }
         break;
     case 'p':
             ModoDeProjecao = !ModoDeProjecao;
@@ -503,6 +609,17 @@ void arrow_keys ( int a_keys, int x, int y )
             else
                 rotBraco -= 3.0f;
 			break;
+        case GLUT_KEY_LEFT:
+            if (forca - 0.5f <= 0.0f)
+                forca = 0.0f;
+            else
+                forca -= 0.5f;
+            break;
+            cout << "Forca em " << forca << endl;
+        case GLUT_KEY_RIGHT:
+            forca += 0.5f;
+            cout << "Forca em " << forca << endl;
+            break;
 		default:
 			break;
 	}
