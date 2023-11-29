@@ -60,6 +60,8 @@ double TempoTotal=0;
 Ponto CantoEsquerdo (-20,-1,-10);
 int cam = 1;
 
+int pontos = 0;
+
 GLuint Tex[2];
 
 float rotBase = 0.0f;
@@ -77,6 +79,9 @@ vector<BezierTiro*> tiros;
 
 bool testTiro = false;
 
+bool parede[25][15];
+
+bool VerificaColisao(Ponto tiro);
 
 // **********************************************************************
 //  void init(void)
@@ -99,6 +104,12 @@ void init(void)
     Tex[1] = LoadTexture("grama.jpg");
 
     glDisable(GL_TEXTURE_2D);
+
+    for (int i = 0; i < 15; i++) {
+        for (int j = 0; j < 25; j++) {
+            parede[j][i] = true;
+        }
+    }
 
     glColorMaterial ( GL_FRONT, GL_AMBIENT_AND_DIFFUSE );
     if (ModoDeExibicao) // Faces Preenchidas??
@@ -124,6 +135,26 @@ void animate()
         AccumDeltaT = 0;
         angulo+= 1;
         glutPostRedisplay();
+
+        if (!testTiro) {
+        for (int i = 0; i < tiros.size(); i++) {
+            BezierTiro* tiro = tiros[i];
+            if (tiro->isValido())
+            {
+                Ponto pontoTiro = tiro->proxPonto(0.05f);
+                bool colisao = VerificaColisao(pontoTiro);
+                if (colisao) {
+                    tiros.erase(tiros.begin()+i);
+                    delete tiro;
+                }
+            }
+            else
+            {
+                tiros.erase(tiros.begin()+i);
+                delete tiro;
+            }
+        }
+
     }
     if (TempoTotal > 5.0)
     {
@@ -133,6 +164,12 @@ void animate()
         TempoTotal = 0;
         nFrames = 0;
     }
+
+
+
+    }
+
+
 }
 
 
@@ -236,6 +273,13 @@ void DesenhaLadrilho(int corBorda, int idTextura, Ponto inicioTextura, Ponto fin
 //
 //
 // **********************************************************************
+void AddPontos(int novosPontos, string texto)
+{
+    pontos += novosPontos;
+    cout << texto << endl;
+    cout << "Total de pontos: " << pontos << endl;
+}
+
 void DesenhaPiso()
 {
     srand(100); // usa uma semente fixa para gerar sempre as mesma cores no piso
@@ -271,7 +315,9 @@ void DesenhaParede()
         glPushMatrix();
         for(int z=0; z<25;z++)
         {
-            DesenhaLadrilho(MediumGoldenrod, 0, Ponto(x * proporcaoX, 0, z * proporcaoZ), Ponto((x + 1) * proporcaoX, 0, (z + 1) * proporcaoZ), false);
+            if (parede[z][x]) {
+                DesenhaLadrilho(MediumGoldenrod, 0, Ponto(x * proporcaoX, 0, z * proporcaoZ), Ponto((x + 1) * proporcaoX, 0, (z + 1) * proporcaoZ), false);
+            }
             glTranslated(0, 0, 1);
         }
         glPopMatrix();
@@ -316,7 +362,10 @@ void Atira()
     DirecaoDoCanhao.rotacionaZ(rotBraco);
     DirecaoDoCanhao.rotacionaY(rotBase);
 
-    Ponto PosicaoDoCanhao = Ponto(posBaseX, 0.5f, posBaseZ) + Ponto (1.5f, 0.0f, 0.0f);
+    Ponto OffsetCanhao = Ponto(1.0f, 0.0f, 0.0f);
+    OffsetCanhao.rotacionaY(rotBase);
+
+    Ponto PosicaoDoCanhao = Ponto(posBaseX, 0.5f, posBaseZ) + Ponto (0.0f, -1.0f, 0.0f) + OffsetCanhao;
 
     Ponto B = PosicaoDoCanhao + (DirecaoDoCanhao * forca);
 
@@ -329,7 +378,7 @@ void Atira()
 
 
 
-    C.imprime();
+    B.imprime();
     cout << "Rot Canhao: " << rotBraco << " | Rot Veiculo: " << rotBase << " | FIRE!!!" << endl;
 
     if (testTiro)
@@ -346,6 +395,44 @@ void Atira()
     }
 
 }
+
+void DestroiParede(int y, int z)
+{
+    if (y <= 15 && y >= 0 && z <= 25 && z >= 0) {
+        parede[z][y] = false;
+    } else {
+        cout << "Bugou!" << " | Y: " << y << " | Z: " << z << endl;
+    }
+}
+
+bool VerificaColisao(Ponto tiro)
+{
+    Ponto pontoParede = tiro - CantoEsquerdo - Ponto(25, 0, 0);
+
+    // cout << "Valor: " << pontoParede.x << endl;
+
+    if (abs(pontoParede.x) < 0.5) {
+        int y = static_cast<int>(pontoParede.y);
+        int z = static_cast<int>(pontoParede.z);
+
+        if (y <= 15 && y >= 0 && z <= 25 && z >= 0)
+        {
+            if (parede[z][y]) {
+                for (int i = -1; i <= 1; i++) {
+                    for (int j = -1; j <= 1; j++) {
+                        DestroiParede(y + i, z + j);
+                    }
+                }
+                AddPontos(5, "Voce ganhou 5 pontos por acertar a parede.");
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+
 
 
 // **********************************************************************
@@ -509,19 +596,14 @@ void display( void )
     }
     else
     {
-        for (int i = 0; i < tiros.size(); i++) {
-        BezierTiro* tiro = tiros[i];
-        if (tiro->isValido())
+        for (int i = 0; i < tiros.size(); i++)
         {
-            DesenhaTiro(tiro->proxPonto(0.05f));
+            BezierTiro* tiro = tiros[i];
+            if (tiro->isValido())
+            {
+                DesenhaTiro(tiro->proxPonto(0.0f));
+            }
         }
-        else
-        {
-            tiros.erase(tiros.begin()+i);
-            delete tiro;
-        }
-
-    }
     }
 
 
