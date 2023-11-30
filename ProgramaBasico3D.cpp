@@ -83,10 +83,12 @@ vector<BezierTiro*> tiros;
 bool testTiro = false;
 
 bool parede[25][15];
+bool chao[25][50];
 
 GameObject** objetos;
 
 vector<Objeto*> inimigos;
+vector<Objeto*> amigos;
 
 bool VerificaColisao(Ponto tiro);
 
@@ -110,10 +112,14 @@ void init(void)
     Tex[0] = LoadTexture("parede-i.jpg");
     Tex[1] = LoadTexture("grama.jpg");
 
-    objetos = new GameObject*[1];
+    objetos = new GameObject*[2];
 
-    objetos[0] = new GameObject("dog.tri");
-    objetos[0]->LeObjeto();
+    objetos[0] = new GameObject("dog.tri", 0.5f);
+    objetos[1] = new GameObject("caminhao.tri", 0.75f);
+
+    for (int i = 0; i < 2; i++) {
+        objetos[i]->LeObjeto();
+    }
 
     inimigos.push_back(new Objeto(objetos[0], Ponto(20, 0, 0)));
     inimigos.push_back(new Objeto(objetos[0], Ponto(12, 0, 0)));
@@ -126,11 +132,29 @@ void init(void)
     inimigos.push_back(new Objeto(objetos[0], Ponto(16, 0, -5)));
     inimigos.push_back(new Objeto(objetos[0], Ponto(10, 0, 10)));
 
+    amigos.push_back(new Objeto(objetos[1], Ponto(0, 0, -6)));
+    amigos.push_back(new Objeto(objetos[1], Ponto(-4, 0, -6)));
+    amigos.push_back(new Objeto(objetos[1], Ponto(-8, 0, -6)));
+    amigos.push_back(new Objeto(objetos[1], Ponto(-12, 0, -6)));
+    amigos.push_back(new Objeto(objetos[1], Ponto(-16, 0, -6)));
+
+    amigos.push_back(new Objeto(objetos[1], Ponto(0, 0, 3)));
+    amigos.push_back(new Objeto(objetos[1], Ponto(-4, 0, 3)));
+    amigos.push_back(new Objeto(objetos[1], Ponto(-8, 0, 3)));
+    amigos.push_back(new Objeto(objetos[1], Ponto(-12, 0, 3)));
+    amigos.push_back(new Objeto(objetos[1], Ponto(-16, 0, 3)));
+
     glDisable(GL_TEXTURE_2D);
 
     for (int i = 0; i < 15; i++) {
         for (int j = 0; j < 25; j++) {
             parede[j][i] = true;
+        }
+    }
+
+    for (int i = 0; i < 50; i++) {
+        for (int j = 0; j < 25; j++) {
+            chao[j][i] = true;
         }
     }
 
@@ -339,7 +363,9 @@ void DesenhaPiso()
         glPushMatrix();
         for(int z=0; z<25;z++)
         {
-            DesenhaLadrilho(MediumGoldenrod, 1, Ponto(x * proporcaoX, 0, z * proporcaoZ), Ponto((x + 1) * proporcaoX, 0, (z + 1) * proporcaoZ), false);
+            if (chao[z][x]) {
+                DesenhaLadrilho(MediumGoldenrod, 1, Ponto(x * proporcaoX, 0, z * proporcaoZ), Ponto((x + 1) * proporcaoX, 0, (z + 1) * proporcaoZ), false);
+            }
             glTranslated(0, 0, 1);
         }
         glPopMatrix();
@@ -449,6 +475,51 @@ void DestroiParede(int y, int z)
     }
 }
 
+void DestroiChao(int x, int z) {
+    if (x <= 50 && x >= 0 && z <= 25 && z >= 0) {
+        chao[z][x] = false;
+    }
+}
+
+bool verificaColisaoVeiculo(float novoX, float novoZ) {
+    Ponto pontoParede = Ponto(posBaseX + novoX, 0.0f, posBaseZ + novoZ) - CantoEsquerdo - Ponto(25, 0, 0) + Ponto(1.8f, 0, 0);
+
+    if (pontoParede.x < 3.0f && pontoParede.x > 0) {
+        int y = static_cast<int>(pontoParede.y);
+        int z = static_cast<int>(pontoParede.z);
+
+        for (int i = 0; i < 2; i++) {
+            for (int j = 0; j < 3; j++) {
+                if ((y+i) <= 15 && (y+i) >= 0 && (z+j) <= 25 && (z+j) >= 0) {
+                    if (parede[z+j][y+i]) {
+                        cout << "Bateu no Paredao!!!" << endl;
+                        return true;
+                    }
+                }
+            }
+        }
+    }
+
+    Ponto pontoChao = Ponto(posBaseX + novoX, 0.0f, posBaseZ + novoZ) - CantoEsquerdo;
+
+    int x = static_cast<int>(pontoChao.x);
+    int z = static_cast<int>(pontoChao.z);
+
+    if (x >= 0 && x <= 50 && z >= 0 && z <= 25) {
+
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 2; j++) {
+                if (!chao[z + j][x + i]) {
+                    cout << "Vai cair!!!" << endl;
+                    return true;
+                }
+            }
+        }
+    }
+
+    return false;
+}
+
 bool VerificaColisao(Ponto tiro)
 {
 
@@ -475,10 +546,21 @@ bool VerificaColisao(Ponto tiro)
     // Verifica colisao chão
     Ponto pontoChao = tiro - CantoEsquerdo;
     if (pontoChao.y <= 0.5) {
-        if (pontoChao.x >= 0 && pontoChao.x <= 50 && pontoChao.z >= 0 && pontoChao.z <= 25) {
 
-            AddPontos(-5, "Voce perdeu 5 pontos por acertar o chao.");
-            return true;
+            int x = static_cast<int>(pontoChao.x);
+            int z = static_cast<int>(pontoChao.z);
+
+        if (x >= 0 && x <= 50 && z >= 0 && z <= 25) {
+
+            if (chao[z][x]) {
+                    for (int i = -1; i <= 1; i++) {
+                        for (int j = -1; j <= 1; j++) {
+                            DestroiChao(x + i, z + j);
+                        }
+                    }
+                AddPontos(-5, "Voce perdeu 5 pontos por acertar o chao.");
+                return true;
+            }
         }
     }
 
@@ -502,6 +584,31 @@ bool VerificaColisao(Ponto tiro)
             inimigos.erase(inimigos.begin() + i);
 
             AddPontos(10, "Voce ganhou 10 pontos por acertar um inimigo.");
+            return true;
+        }
+
+    }
+
+    // Verifica Colisao Amigo
+    for (int i = 0; i < amigos.size(); i++) {
+        Objeto* objeto = amigos[i];
+
+        Ponto pMin = objeto->getPMin();
+        Ponto pMax = objeto->getPMax();
+
+        // pMin.imprime();
+        // cout << endl;
+        // pMax.imprime();
+        // cout << endl << endl;
+
+        if (pMin.x <= tiro.x && pMin.y <= tiro.y && pMin.z <= tiro.z &&
+            pMax.x >= tiro.x && pMax.y >= tiro.y && pMax.z >= tiro.z ) {
+
+            delete objeto;
+
+            amigos.erase(amigos.begin() + i);
+
+            AddPontos(-10, "Voce perdeu 10 pontos por acertar um amigo.");
             return true;
         }
 
@@ -694,6 +801,15 @@ void display( void )
         glPopMatrix();
     }
 
+    for (int i = 0; i < amigos.size(); i++) {
+        Objeto* obj = amigos[i];
+
+        glPushMatrix();
+            glTranslated(obj->getPosicao().x, obj->getPosicao().y, obj->getPosicao().z);
+            DesenhaObjeto(obj->getObjeto(), false);
+        glPopMatrix();
+    }
+
 
 
 	glutSwapBuffers();
@@ -707,6 +823,9 @@ void display( void )
 // **********************************************************************
 void keyboard ( unsigned char key, int x, int y )
 {
+    float novoX = cos(rotBase * 0.017453f) * 0.11f;
+    float novoZ = sin(rotBase * 0.017453f) * 0.11f;
+
 	switch ( key )
 	{
     case 27:        // Termina o programa qdo
@@ -722,12 +841,16 @@ void keyboard ( unsigned char key, int x, int y )
         cam = 3;
         break;
     case 'w':
-        posBaseX += cos(rotBase * 0.017453f) * 0.11f;
-        posBaseZ -= sin(rotBase * 0.017453f) * 0.11f;
+        if(!verificaColisaoVeiculo(novoX, -novoZ)) {
+            posBaseX += novoX;
+            posBaseZ -= novoZ;
+        }
         break;
     case 's':
-        posBaseX -= cos(rotBase * 0.017453f) * 0.11f;
-        posBaseZ += sin(rotBase * 0.017453f) * 0.11f;
+        if(!verificaColisaoVeiculo(-novoX, novoZ)) {
+            posBaseX -= novoX;
+            posBaseZ += novoZ;
+        }
         break;
     case 'a':
         rotBase += 3.0f;

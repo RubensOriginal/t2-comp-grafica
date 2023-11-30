@@ -17,7 +17,7 @@ typedef struct {
 class GameObject
 {
     public:
-        GameObject(string filename);
+        GameObject(string filename, float multiplier);
         void LeObjeto();
         int getNumLados();
         Triangle* getFaces();
@@ -31,6 +31,7 @@ class GameObject
         Triangle* faces;
         string filename;
         int size;
+        float multi;
 };
 
 #endif // GAMEOBJECT_H

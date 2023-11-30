@@ -6,11 +6,12 @@
 #include "GameObject.h"
 #include "Ponto.h"
 
-GameObject::GameObject(string filename)
+GameObject::GameObject(string filename, float multiplier)
 {
     this->faces = NULL;
     this->size = 0;
     this->filename = filename;
+    this->multi = multiplier;
 }
 
 void GameObject::LeObjeto()
@@ -32,7 +33,6 @@ void GameObject::LeObjeto()
     arq >> size;
 
     arq >> sizex >> sizez;
-    cout << "Size: " << a << endl;
 
     faces = new Triangle[size];
     float x,y,z;
@@ -40,15 +40,18 @@ void GameObject::LeObjeto()
 
     bool first = true;
 
+    cout << "Carregando " << this->filename << endl;
+    cout << "Size: " << size << endl;
+
     for (int i=0;i<size;i++)
     {
         // Le os trs vŽrtices
         arq >> x >> y >> z; // Vertice 1
-        faces[i].P1.set(x/2,y/2,z/2);
+        faces[i].P1.set(x * multi,y * multi,z * multi);
         arq >> x >> y >> z; // Vertice 2
-        faces[i].P2.set(x/2,y/2,z/2);
+        faces[i].P2.set(x * multi,y * multi,z * multi);
         arq >> x >> y >> z >> color; // Vertice 3
-        faces[i].P3.set(x/2,y/2,z/2);
+        faces[i].P3.set(x * multi,y * multi,z * multi);
         // cout << i << ": ";
         // faces[i].imprime();
 
