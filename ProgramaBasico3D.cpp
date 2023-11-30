@@ -137,33 +137,34 @@ void animate()
         glutPostRedisplay();
 
         if (!testTiro) {
-        for (int i = 0; i < tiros.size(); i++) {
-            BezierTiro* tiro = tiros[i];
-            if (tiro->isValido())
+            for (int i = 0; i < tiros.size(); i++)
             {
-                Ponto pontoTiro = tiro->proxPonto(0.05f);
-                bool colisao = VerificaColisao(pontoTiro);
-                if (colisao) {
+                BezierTiro* tiro = tiros[i];
+                if (tiro->isValido())
+                {
+                    Ponto pontoTiro = tiro->proxPonto(0.05f);
+                    bool colisao = VerificaColisao(pontoTiro);
+                    if (colisao) {
+                        tiros.erase(tiros.begin()+i);
+                        delete tiro;
+                    }
+                }
+                else
+                {
                     tiros.erase(tiros.begin()+i);
                     delete tiro;
                 }
             }
-            else
-            {
-                tiros.erase(tiros.begin()+i);
-                delete tiro;
-            }
-        }
 
-    }
-    if (TempoTotal > 5.0)
-    {
-        cout << "Tempo Acumulado: "  << TempoTotal << " segundos. " ;
-        cout << "Nros de Frames sem desenho: " << nFrames << endl;
-        cout << "FPS(sem desenho): " << nFrames/TempoTotal << endl;
-        TempoTotal = 0;
-        nFrames = 0;
-    }
+        }
+        if (TempoTotal > 5.0)
+        {
+            cout << "Tempo Acumulado: "  << TempoTotal << " segundos. " ;
+            cout << "Nros de Frames sem desenho: " << nFrames << endl;
+            cout << "FPS(sem desenho): " << nFrames/TempoTotal << endl;
+            TempoTotal = 0;
+            nFrames = 0;
+        }
 
 
 
@@ -400,8 +401,6 @@ void DestroiParede(int y, int z)
 {
     if (y <= 15 && y >= 0 && z <= 25 && z >= 0) {
         parede[z][y] = false;
-    } else {
-        cout << "Bugou!" << " | Y: " << y << " | Z: " << z << endl;
     }
 }
 
@@ -427,6 +426,15 @@ bool VerificaColisao(Ponto tiro)
                 return true;
             }
         }
+    }
+
+    Ponto pontoChao = tiro - CantoEsquerdo;
+
+    pontoChao.imprime();
+    cout << endl;
+
+    if (pontoChao.y <= 0.5) {
+        cout << "Acertou" << endl;
     }
 
     return false;
