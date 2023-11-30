@@ -1,4 +1,4 @@
-// 
+//
 //  Ponto.cpp
 //  OpenGLTest
 //
@@ -99,7 +99,7 @@ void Ponto::versor()
 Ponto ObtemMaximo (Ponto P1, Ponto P2)
 {
     Ponto Max;
-    
+
     Max.x = (P2.x > P1.x) ? P2.x : P1.x;
     Max.y = (P2.y > P1.y) ? P2.y : P1.y;
     Max.z = (P2.z > P1.x) ? P2.z : P1.z;
@@ -108,7 +108,7 @@ Ponto ObtemMaximo (Ponto P1, Ponto P2)
 Ponto ObtemMinimo (Ponto P1, Ponto P2)
 {
     Ponto Min;
-    
+
     Min.x = (P2.x < P1.x) ? P2.x : P1.x;
     Min.y = (P2.y < P1.y) ? P2.y : P1.y;
     Min.z = (P2.z < P1.x) ? P2.z : P1.z;
@@ -161,6 +161,19 @@ double ProdEscalar(Ponto v1, Ponto v2)
 {
     return v1.x*v2.x + v1.y*v2.y+ v1.z*v2.z;
 }
+
+void VetUnitario(Ponto &vet)
+    {
+        float modulo;
+
+        modulo = sqrt (vet.x * vet.x + vet.y * vet.y + vet.z * vet.z);
+
+        if (modulo == 0.0) return;
+
+        vet.x /= modulo;
+        vet.y /= modulo;
+        vet.z /= modulo;
+    }
 // **********************************************************************
 //    Calcula o produto vetorial entre os vetores V1 e V2
 // **********************************************************************
@@ -205,7 +218,7 @@ bool HaInterseccao(Ponto k, Ponto l, Ponto m, Ponto n)
 {
     int ret;
     double s,t;
-    
+
     ContadorInt = ContadorInt + 1;
     ret = intersec2d( k,  l,  m,  n, s, t);
     if (!ret) return false;

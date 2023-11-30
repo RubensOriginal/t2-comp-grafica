@@ -65,6 +65,8 @@
 		</Compiler>
 		<Unit filename="BezierTiro.cpp" />
 		<Unit filename="BezierTiro.h" />
+		<Unit filename="GameObject.cpp" />
+		<Unit filename="GameObject.h" />
 		<Unit filename="ImageClass.cpp" />
 		<Unit filename="ImageClass.h" />
 		<Unit filename="Linha.cpp" />

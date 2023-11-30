@@ -36,6 +36,9 @@ using namespace std;
 #include "Ponto.h"
 #include "TextureClass.h"
 #include "BezierTiro.h"
+#include "GameObject.h"
+#include "Objeto.h"
+
 Temporizador T;
 double AccumDeltaT=0;
 
@@ -81,6 +84,10 @@ bool testTiro = false;
 
 bool parede[25][15];
 
+GameObject** objetos;
+
+vector<Objeto*> inimigos;
+
 bool VerificaColisao(Ponto tiro);
 
 // **********************************************************************
@@ -102,6 +109,22 @@ void init(void)
 
     Tex[0] = LoadTexture("parede-i.jpg");
     Tex[1] = LoadTexture("grama.jpg");
+
+    objetos = new GameObject*[1];
+
+    objetos[0] = new GameObject("dog.tri");
+    objetos[0]->LeObjeto();
+
+    inimigos.push_back(new Objeto(objetos[0], Ponto(20, 0, 0)));
+    inimigos.push_back(new Objeto(objetos[0], Ponto(12, 0, 0)));
+    inimigos.push_back(new Objeto(objetos[0], Ponto(10, 0, -5)));
+    inimigos.push_back(new Objeto(objetos[0], Ponto(15, 0, 10)));
+    inimigos.push_back(new Objeto(objetos[0], Ponto(15, 0, 4)));
+    inimigos.push_back(new Objeto(objetos[0], Ponto(21, 0, 10)));
+    inimigos.push_back(new Objeto(objetos[0], Ponto(25, 0, 0)));
+    inimigos.push_back(new Objeto(objetos[0], Ponto(18, 0, -2)));
+    inimigos.push_back(new Objeto(objetos[0], Ponto(16, 0, -5)));
+    inimigos.push_back(new Objeto(objetos[0], Ponto(10, 0, 10)));
 
     glDisable(GL_TEXTURE_2D);
 
@@ -227,6 +250,28 @@ void DesenhaParalelepipedo()
         glutSolidCube(2);
         //DesenhaCubo(1);
     glPopMatrix();
+}
+
+void DesenhaObjeto(GameObject* objeto, bool inimigo) {
+    for (int i = 0; i < objeto->getNumLados(); i++) {
+        Triangle tri = objeto->getFaces()[i];
+
+        Ponto P1 = tri.P1;
+        Ponto P2 = tri.P2;
+        Ponto P3 = tri.P3;
+        Ponto PN = tri.PN;
+
+        glBegin(GL_TRIANGLES);
+            if (inimigo)
+                glColor3f(1.0f, 0.25f, 0.25f);
+            else
+                glColor3f(0.0f, 1.0f, 1.0f);
+            glNormal3f(PN.x, PN.y, PN.z);
+            glVertex3f(P1.x, P1.y, P1.z);
+            glVertex3f(P2.x, P2.y, P2.z);
+            glVertex3f(P3.x, P3.y, P3.z);
+        glEnd();
+    }
 }
 
 // **********************************************************************
@@ -406,10 +451,9 @@ void DestroiParede(int y, int z)
 
 bool VerificaColisao(Ponto tiro)
 {
+
+    // Verifica colisao parede
     Ponto pontoParede = tiro - CantoEsquerdo - Ponto(25, 0, 0);
-
-    // cout << "Valor: " << pontoParede.x << endl;
-
     if (abs(pontoParede.x) < 0.5) {
         int y = static_cast<int>(pontoParede.y);
         int z = static_cast<int>(pontoParede.z);
@@ -428,13 +472,39 @@ bool VerificaColisao(Ponto tiro)
         }
     }
 
+    // Verifica colisao ch„o
     Ponto pontoChao = tiro - CantoEsquerdo;
-
-    pontoChao.imprime();
-    cout << endl;
-
     if (pontoChao.y <= 0.5) {
-        cout << "Acertou" << endl;
+        if (pontoChao.x >= 0 && pontoChao.x <= 50 && pontoChao.z >= 0 && pontoChao.z <= 25) {
+
+            AddPontos(-5, "Voce perdeu 5 pontos por acertar o chao.");
+            return true;
+        }
+    }
+
+    // Verifica Colisao Inimigos
+    for (int i = 0; i < inimigos.size(); i++) {
+        Objeto* objeto = inimigos[i];
+
+        Ponto pMin = objeto->getPMin();
+        Ponto pMax = objeto->getPMax();
+
+        // pMin.imprime();
+        // cout << endl;
+        // pMax.imprime();
+        // cout << endl << endl;
+
+        if (pMin.x <= tiro.x && pMin.y <= tiro.y && pMin.z <= tiro.z &&
+            pMax.x >= tiro.x && pMax.y >= tiro.y && pMax.z >= tiro.z ) {
+
+            delete objeto;
+
+            inimigos.erase(inimigos.begin() + i);
+
+            AddPontos(10, "Voce ganhou 10 pontos por acertar um inimigo.");
+            return true;
+        }
+
     }
 
     return false;
@@ -521,8 +591,8 @@ void PosicUser()
 
     switch (cam) {
         case 2:
-            gluLookAt(-10, 20, 10,   // Posição do Observador
-                      -9.5f, 0, 10,     // Posição do Alvo
+            gluLookAt(25, 30, 10,   // Posição do Observador
+                      23, 0, 10,     // Posição do Alvo
                       0, 0, 1);
             break;
         case 3:
@@ -614,6 +684,17 @@ void display( void )
         }
     }
 
+    for (int i = 0; i < inimigos.size(); i++) {
+        Objeto* obj = inimigos[i];
+
+        glPushMatrix();
+            // glScalef(0.25f, 0.25f, 0.25f);
+            glTranslated(obj->getPosicao().x, obj->getPosicao().y, obj->getPosicao().z);
+            DesenhaObjeto(obj->getObjeto(), true);
+        glPopMatrix();
+    }
+
+
 
 	glutSwapBuffers();
 }
@@ -641,12 +722,12 @@ void keyboard ( unsigned char key, int x, int y )
         cam = 3;
         break;
     case 'w':
-        posBaseX += cos(rotBase * 0.017453f) * 0.15f;
-        posBaseZ -= sin(rotBase * 0.017453f) * 0.15f;
+        posBaseX += cos(rotBase * 0.017453f) * 0.11f;
+        posBaseZ -= sin(rotBase * 0.017453f) * 0.11f;
         break;
     case 's':
-        posBaseX -= cos(rotBase * 0.017453f) * 0.15f;
-        posBaseZ += sin(rotBase * 0.017453f) * 0.15f;
+        posBaseX -= cos(rotBase * 0.017453f) * 0.11f;
+        posBaseZ += sin(rotBase * 0.017453f) * 0.11f;
         break;
     case 'a':
         rotBase += 3.0f;

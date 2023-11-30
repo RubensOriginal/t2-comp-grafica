@@ -375,11 +375,11 @@
 	"Ponto.h"
 	<vector>
 
-1700938592 c:\users\gamep\desktop\my_github_projects\t2-comp-grafica\ponto.h
+1701316672 c:\users\gamep\desktop\my_github_projects\t2-comp-grafica\ponto.h
 	<iostream>
 	<cmath>
 
-1700938592 source:c:\users\gamep\desktop\my_github_projects\t2-comp-grafica\ponto.cpp
+1701316719 source:c:\users\gamep\desktop\my_github_projects\t2-comp-grafica\ponto.cpp
 	"Ponto.h"
 
 1700938592 source:c:\users\gamep\desktop\my_github_projects\t2-comp-grafica\temporizador.cpp
@@ -390,7 +390,7 @@
 	<windows.h>
 	<sys/time.h>
 
-1701049825 source:c:\users\gamep\desktop\my_github_projects\t2-comp-grafica\programabasico3d.cpp
+1701321509 source:c:\users\gamep\desktop\my_github_projects\t2-comp-grafica\programabasico3d.cpp
 	<iostream>
 	<cmath>
 	<ctime>
@@ -405,6 +405,8 @@
 	"Ponto.h"
 	"TextureClass.h"
 	"BezierTiro.h"
+	"GameObject.h"
+	"Objeto.h"
 
 1700945715 source:c:\users\gamep\desktop\my_github_projects\t2-comp-grafica\imageclass.cpp
 	<stdio.h>
@@ -669,4 +671,22 @@
 
 1701108534 source:c:\users\gamep\codeblocks\tironoparedao\textureclass.cpp
 	"TextureClass.h"
+
+1701320889 source:c:\users\gamep\desktop\my_github_projects\t2-comp-grafica\gameobject.cpp
+	<iostream>
+	<fstream>
+	<ctime>
+	<cstdlib>
+	"GameObject.h"
+	"Ponto.h"
+
+1701320000 c:\users\gamep\desktop\my_github_projects\t2-comp-grafica\gameobject.h
+	"Ponto.h"
+
+1701320217 source:c:\users\gamep\desktop\my_github_projects\t2-comp-grafica\objeto.cpp
+	"Objeto.h"
+
+1701321224 c:\users\gamep\desktop\my_github_projects\t2-comp-grafica\objeto.h
+	"Ponto.h"
+	"GameObject.h"
 

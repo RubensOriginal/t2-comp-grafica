@@ -45,6 +45,7 @@ Ponto operator-(Ponto P1);
 
 double ProdEscalar(Ponto v1, Ponto v2);
 void ProdVetorial (Ponto v1, Ponto v2, Ponto &vresult);
+void VetUnitario(Ponto &vet);
 int intersec2d(Ponto k, Ponto l, Ponto m, Ponto n, double &s, double &t);
 bool HaInterseccao(Ponto k, Ponto l, Ponto m, Ponto n);
 
