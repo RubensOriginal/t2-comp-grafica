@@ -523,6 +523,14 @@ bool verificaColisaoVeiculo(float novoX, float novoZ) {
 bool VerificaColisao(Ponto tiro)
 {
 
+    // Verifica Colisao com
+    Ponto pontoVeiculo = tiro - Ponto(posBaseX, 0.0f, posBaseZ);
+
+    if (abs(pontoVeiculo.x) < 1.5f && pontoVeiculo.y < 0.25f && abs(pontoVeiculo.z) < 1.0f) {
+        cout << "Acabou :)" << endl;
+        exit(1);
+    }
+
     // Verifica colisao parede
     Ponto pontoParede = tiro - CantoEsquerdo - Ponto(25, 0, 0);
     if (abs(pontoParede.x) < 0.5) {
@@ -613,6 +621,11 @@ bool VerificaColisao(Ponto tiro)
         }
 
     }
+
+
+
+    pontoVeiculo.imprime();
+    cout << endl;
 
     return false;
 }
